@@ -1,0 +1,51 @@
+1. CloudFormation -> vpc.yml -> Stack name:  pg -> Next -> Next -> Finish
+     
+    - It creates a VPC (pg-vpc), subnets (pg-sn1, pg-sn2) , RT (pg-rt), and IGW (pg-igw)
+    - Note down comma-separated public subnets
+      subnet-07ebc920b6006fa89,subnet-0cfbe6810b1a66c09
+  
+2. CloudFormation -> security-groups.yml -> Stack name: pg-security-group, Choose VPC-ID -> Next -> Next -> Finish
+
+     - It creates a security Group (pg-security-group) 
+     - sg-035f86ec993b6849f
+
+3. CloudFormation -> dbsubnetgroup.yml -> Stakc name: pg-db-subnet-group 
+     -> Give rest of the details -> Next -> Next -> Finish
+     - Go to RDS -> See Subnet Groups -> Check of pg-db-subnet-group is created.
+
+3. CloudFormation -> rds-oracle-standalone.yml -> Stakc name: pg-oracle-instance
+    
+     DBInstanceName	     pg-oracle-instance
+     SecurityGroupId	<Choose>
+     VPCID	          <Choose>
+    
+    # it creates a 
+       i) RDS instance with name "pg-oracle-instance" 
+   
+4. CloudFormation -> postgres-cluster-dbgroup-hard-code.yml -> Stakc name: pg-rdsa
+    ###please open aurora-cluster-dbgroup-hard-code.yml and make sure the 
+    ###hardcoded "subnetgroup" matches with existing subnet group created with above step
+    ###RDS -> Subnet groups -> check
+  
+     DBEngineVersion	15.3
+     DBInstanceClass	db.t3.medium
+     DBMasterUsername	postgres
+     DBMasterUserPassword	postgres
+     RdsAuroraVPC	vpc-0256ad07c6ecf51e3
+     TemplateName	rdsa-postgresql
+     VPCSecurityGroupCluster	sg-036245adc952ca77c
+   
+    # it creates 
+        i) aurora cluster with name "pg-rdsa-cluster" 
+       ii) aurora writer instance with name "pg-rdsa-node-01"
+ 
+5. Create replica for above machine
+
+   CloudFormation -> postgres-cluster-replica.yml -> stack name : pg-rdsa-node-02
+   DBCluster -> rdsa-postgresql-cluster
+   
+    DBCluster	pg-rdsa-cluster
+    DBEngineVersion	15.3
+    DBInstanceClass	db.t3.medium
+    ReplicaNodeName	pg-rdsa-node-02
+    TemplateName	pg-rdsa-node-02
